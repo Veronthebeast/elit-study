@@ -1,6 +1,6 @@
 "use client";
 
-import { createContext, useEffect, useState, type ReactNode } from "react";
+import { createContext, useEffect, useState, useRef, type ReactNode } from "react";
 import type { User, SupabaseClient } from "@supabase/supabase-js";
 import { createClient } from "@/lib/supabase/client";
 
@@ -16,10 +16,14 @@ export const AuthContext = createContext<AuthContextType | null>(null);
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
   const [isLoading, setIsLoading] = useState(true);
-  const supabase = createClient();
+  const supabaseRef = useRef<SupabaseClient>(createClient());
 
   useEffect(() => {
+    const supabase = supabaseRef.current;
+    let mounted = true;
+
     supabase.auth.getSession().then(({ data: { session } }) => {
+      if (!mounted) return;
       setUser(session?.user ?? null);
       setIsLoading(false);
     });
@@ -27,19 +31,25 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     const {
       data: { subscription },
     } = supabase.auth.onAuthStateChange((_event, session) => {
+      if (!mounted) return;
       setUser(session?.user ?? null);
       setIsLoading(false);
     });
 
-    return () => subscription.unsubscribe();
-  }, [supabase]);
+    return () => {
+      mounted = false;
+      subscription.unsubscribe();
+    };
+  }, []);
 
   const signOut = async () => {
+    const supabase = supabaseRef.current;
     await supabase.auth.signOut();
+    setUser(null);
   };
 
   return (
-    <AuthContext.Provider value={{ user, supabase, isLoading, signOut }}>
+    <AuthContext.Provider value={{ user, supabase: supabaseRef.current, isLoading, signOut }}>
       {children}
     </AuthContext.Provider>
   );

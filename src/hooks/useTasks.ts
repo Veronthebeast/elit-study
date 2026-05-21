@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
 import { createClient } from "@/lib/supabase/client";
 import { useAuth } from "./useAuth";
 import { useAvatarState } from "./useAvatarState";
@@ -9,25 +9,26 @@ import type { Task, TaskFormData } from "@/types/task";
 export function useTasks() {
   const [tasks, setTasks] = useState<Task[]>([]);
   const [isLoading, setIsLoading] = useState(true);
-  const { user } = useAuth();
+  const { user, isLoading: authLoading } = useAuth();
   const { triggerEvent } = useAvatarState();
-  const supabase = createClient();
+  const supabaseRef = useRef(createClient());
 
   const fetchTasks = useCallback(async () => {
     if (!user) return;
     setIsLoading(true);
-    const { data } = await supabase
+    const { data } = await supabaseRef.current
       .from("tasks")
       .select("*")
       .eq("user_id", user.id)
       .order("due_date", { ascending: true });
     if (data) setTasks(data as Task[]);
     setIsLoading(false);
-  }, [user, supabase]);
+  }, [user]);
 
   const createTask = useCallback(async (task: TaskFormData) => {
+    if (authLoading) return { data: null, error: new Error("Cargando sesión...") };
     if (!user) return { data: null, error: new Error("Not authenticated") };
-    const { data, error } = await supabase
+    const { data, error } = await supabaseRef.current
       .from("tasks")
       .insert([{ ...task, user_id: user.id }])
       .select()
@@ -36,11 +37,11 @@ export function useTasks() {
       setTasks((prev) => [...prev, data as Task]);
     }
     return { data, error };
-  }, [user, supabase]);
+  }, [user, authLoading]);
 
   const updateTask = useCallback(async (id: string, updates: Partial<TaskFormData>) => {
     if (!user) return { data: null, error: new Error("Not authenticated") };
-    const { data, error } = await supabase
+    const { data, error } = await supabaseRef.current
       .from("tasks")
       .update(updates)
       .eq("id", id)
@@ -50,11 +51,11 @@ export function useTasks() {
       setTasks((prev) => prev.map((t) => (t.id === id ? (data as Task) : t)));
     }
     return { data, error };
-  }, [user, supabase]);
+  }, [user]);
 
   const deleteTask = useCallback(async (id: string) => {
     if (!user) return { error: new Error("Not authenticated") };
-    const { error } = await supabase
+    const { error } = await supabaseRef.current
       .from("tasks")
       .delete()
       .eq("id", id);
@@ -62,7 +63,7 @@ export function useTasks() {
       setTasks((prev) => prev.filter((t) => t.id !== id));
     }
     return { error };
-  }, [user, supabase]);
+  }, [user]);
 
   const toggleStatus = useCallback(async (id: string) => {
     if (!user) return { data: null, error: new Error("Not authenticated") };
@@ -76,7 +77,7 @@ export function useTasks() {
     };
     const nextStatus = statusCycle[task.status] || "pendiente";
 
-    const { data, error } = await supabase
+    const { data, error } = await supabaseRef.current
       .from("tasks")
       .update({ status: nextStatus })
       .eq("id", id)
@@ -89,7 +90,7 @@ export function useTasks() {
       }
     }
     return { data, error };
-  }, [user, supabase, tasks, triggerEvent]);
+  }, [user, tasks, triggerEvent]);
 
   useEffect(() => {
     fetchTasks();
