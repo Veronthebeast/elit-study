@@ -27,27 +27,37 @@ export function TaskModal({ isOpen, onClose, task }: TaskModalProps) {
   const [dueDate, setDueDate] = useState(task?.due_date || "");
   const [priority, setPriority] = useState(task?.priority || "media");
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!title.trim()) return;
     setIsSubmitting(true);
+    setError(null);
 
+    let result;
     if (task) {
-      await updateTask(task.id, {
+      result = await updateTask(task.id, {
         title: title.trim(),
         subject: subject.trim() || undefined,
         due_date: dueDate || undefined,
         priority: priority as Task["priority"],
       });
     } else {
-      await createTask({
+      result = await createTask({
         title: title.trim(),
         subject: subject.trim() || undefined,
         due_date: dueDate || undefined,
         priority: priority as Task["priority"],
       });
     }
+
+    if (result?.error) {
+      setError(result.error.message);
+      setIsSubmitting(false);
+      return;
+    }
+
     setIsSubmitting(false);
     onClose();
   };
@@ -55,6 +65,12 @@ export function TaskModal({ isOpen, onClose, task }: TaskModalProps) {
   return (
     <Modal isOpen={isOpen} onClose={onClose} title={task ? "Editar Tarea" : "Nueva Tarea"}>
       <form onSubmit={handleSubmit} className="space-y-4">
+        {error && (
+          <div className="p-3 rounded-lg bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-300 text-sm">
+            {error}
+          </div>
+        )}
+
         <Input
           id="title"
           label="Título"

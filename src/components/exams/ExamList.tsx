@@ -9,7 +9,7 @@ import { useExams } from "@/hooks/useExams";
 import type { Exam } from "@/types/exam";
 
 export function ExamList() {
-  const { exams, isLoading, deleteExam } = useExams();
+  const { exams, isLoading, deleteExam, refetch } = useExams();
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingExam, setEditingExam] = useState<Exam | null>(null);
 
@@ -21,6 +21,7 @@ export function ExamList() {
   const handleClose = () => {
     setIsModalOpen(false);
     setEditingExam(null);
+    refetch();
   };
 
   const handleDelete = async (id: string, e: React.MouseEvent) => {

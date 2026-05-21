@@ -27,25 +27,35 @@ export function ExamModal({ isOpen, onClose, exam }: ExamModalProps) {
   const [examDate, setExamDate] = useState(exam?.exam_date || "");
   const [examType, setExamType] = useState(exam?.exam_type || "parcial");
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!subject.trim() || !examDate) return;
     setIsSubmitting(true);
+    setError(null);
 
+    let result;
     if (exam) {
-      await updateExam(exam.id, {
+      result = await updateExam(exam.id, {
         subject: subject.trim(),
         exam_date: examDate,
         exam_type: examType as Exam["exam_type"],
       });
     } else {
-      await createExam({
+      result = await createExam({
         subject: subject.trim(),
         exam_date: examDate,
         exam_type: examType as Exam["exam_type"],
       });
     }
+
+    if (result?.error) {
+      setError(result.error.message);
+      setIsSubmitting(false);
+      return;
+    }
+
     setIsSubmitting(false);
     onClose();
   };
@@ -53,6 +63,12 @@ export function ExamModal({ isOpen, onClose, exam }: ExamModalProps) {
   return (
     <Modal isOpen={isOpen} onClose={onClose} title={exam ? "Editar Parcial" : "Nuevo Parcial"}>
       <form onSubmit={handleSubmit} className="space-y-4">
+        {error && (
+          <div className="p-3 rounded-lg bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-300 text-sm">
+            {error}
+          </div>
+        )}
+
         <Input
           id="subject"
           label="Materia"

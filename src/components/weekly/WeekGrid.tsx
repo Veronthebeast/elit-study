@@ -12,7 +12,7 @@ import { useWeeklySchedule } from "@/hooks/useWeeklySchedule";
 const DAYS = ["Lunes", "Martes", "Miércoles", "Jueves", "Viernes", "Sábado", "Domingo"];
 
 export function WeekGrid() {
-  const { activities, isLoading } = useWeeklySchedule();
+  const { activities, isLoading, refetch } = useWeeklySchedule();
   const [isModalOpen, setIsModalOpen] = useState(false);
   const weekStart = startOfWeek(new Date(), { weekStartsOn: 1 });
 
@@ -57,7 +57,10 @@ export function WeekGrid() {
         ))}
       </div>
 
-      <AddActivityModal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} />
+      <AddActivityModal
+        isOpen={isModalOpen}
+        onClose={() => { setIsModalOpen(false); refetch(); }}
+      />
     </div>
   );
 }

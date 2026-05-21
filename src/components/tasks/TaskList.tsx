@@ -9,7 +9,7 @@ import { useTasks } from "@/hooks/useTasks";
 import type { Task } from "@/types/task";
 
 export function TaskList() {
-  const { tasks, isLoading, deleteTask, toggleStatus } = useTasks();
+  const { tasks, isLoading, deleteTask, toggleStatus, refetch } = useTasks();
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingTask, setEditingTask] = useState<Task | null>(null);
 
@@ -21,6 +21,7 @@ export function TaskList() {
   const handleClose = () => {
     setIsModalOpen(false);
     setEditingTask(null);
+    refetch();
   };
 
   const handleToggle = async (id: string, e: React.MouseEvent) => {
