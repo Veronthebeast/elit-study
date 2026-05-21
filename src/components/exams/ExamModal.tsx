@@ -5,11 +5,13 @@ import { Modal } from "@/components/ui/Modal";
 import { Input } from "@/components/ui/Input";
 import { Select } from "@/components/ui/Select";
 import { Button } from "@/components/ui/Button";
+import { useExams } from "@/hooks/useExams";
+import type { Exam } from "@/types/exam";
 
 interface ExamModalProps {
   isOpen: boolean;
   onClose: () => void;
-  exam?: any;
+  exam?: Exam | null;
 }
 
 const examTypes = [
@@ -20,13 +22,31 @@ const examTypes = [
 ];
 
 export function ExamModal({ isOpen, onClose, exam }: ExamModalProps) {
+  const { createExam, updateExam } = useExams();
   const [subject, setSubject] = useState(exam?.subject || "");
   const [examDate, setExamDate] = useState(exam?.exam_date || "");
   const [examType, setExamType] = useState(exam?.exam_type || "parcial");
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    // TODO: Implement exam CRUD
+    if (!subject.trim() || !examDate) return;
+    setIsSubmitting(true);
+
+    if (exam) {
+      await updateExam(exam.id, {
+        subject: subject.trim(),
+        exam_date: examDate,
+        exam_type: examType as Exam["exam_type"],
+      });
+    } else {
+      await createExam({
+        subject: subject.trim(),
+        exam_date: examDate,
+        exam_type: examType as Exam["exam_type"],
+      });
+    }
+    setIsSubmitting(false);
     onClose();
   };
 
@@ -56,15 +76,15 @@ export function ExamModal({ isOpen, onClose, exam }: ExamModalProps) {
           label="Tipo"
           options={examTypes}
           value={examType}
-          onChange={(e) => setExamType(e.target.value)}
+          onChange={(e) => setExamType(e.target.value as Exam["exam_type"])}
         />
 
         <div className="flex justify-end gap-3 pt-2">
           <Button variant="secondary" type="button" onClick={onClose}>
             Cancelar
           </Button>
-          <Button type="submit">
-            {exam ? "Guardar Cambios" : "Crear Parcial"}
+          <Button type="submit" disabled={isSubmitting}>
+            {isSubmitting ? "Guardando..." : exam ? "Guardar Cambios" : "Crear Parcial"}
           </Button>
         </div>
       </form>

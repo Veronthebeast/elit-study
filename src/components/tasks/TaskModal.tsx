@@ -5,11 +5,13 @@ import { Modal } from "@/components/ui/Modal";
 import { Input } from "@/components/ui/Input";
 import { Select } from "@/components/ui/Select";
 import { Button } from "@/components/ui/Button";
+import { useTasks } from "@/hooks/useTasks";
+import type { Task } from "@/types/task";
 
 interface TaskModalProps {
   isOpen: boolean;
   onClose: () => void;
-  task?: any;
+  task?: Task | null;
 }
 
 const priorities = [
@@ -19,14 +21,34 @@ const priorities = [
 ];
 
 export function TaskModal({ isOpen, onClose, task }: TaskModalProps) {
+  const { createTask, updateTask } = useTasks();
   const [title, setTitle] = useState(task?.title || "");
   const [subject, setSubject] = useState(task?.subject || "");
   const [dueDate, setDueDate] = useState(task?.due_date || "");
   const [priority, setPriority] = useState(task?.priority || "media");
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    // TODO: Implement task CRUD
+    if (!title.trim()) return;
+    setIsSubmitting(true);
+
+    if (task) {
+      await updateTask(task.id, {
+        title: title.trim(),
+        subject: subject.trim() || undefined,
+        due_date: dueDate || undefined,
+        priority: priority as Task["priority"],
+      });
+    } else {
+      await createTask({
+        title: title.trim(),
+        subject: subject.trim() || undefined,
+        due_date: dueDate || undefined,
+        priority: priority as Task["priority"],
+      });
+    }
+    setIsSubmitting(false);
     onClose();
   };
 
@@ -63,15 +85,15 @@ export function TaskModal({ isOpen, onClose, task }: TaskModalProps) {
           label="Prioridad"
           options={priorities}
           value={priority}
-          onChange={(e) => setPriority(e.target.value)}
+          onChange={(e) => setPriority(e.target.value as Task["priority"])}
         />
 
         <div className="flex justify-end gap-3 pt-2">
           <Button variant="secondary" type="button" onClick={onClose}>
             Cancelar
           </Button>
-          <Button type="submit">
-            {task ? "Guardar Cambios" : "Crear Tarea"}
+          <Button type="submit" disabled={isSubmitting}>
+            {isSubmitting ? "Guardando..." : task ? "Guardar Cambios" : "Crear Tarea"}
           </Button>
         </div>
       </form>

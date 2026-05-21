@@ -5,6 +5,7 @@ import { Modal } from "@/components/ui/Modal";
 import { Input } from "@/components/ui/Input";
 import { Select } from "@/components/ui/Select";
 import { Button } from "@/components/ui/Button";
+import { useWeeklySchedule } from "@/hooks/useWeeklySchedule";
 
 interface AddActivityModalProps {
   isOpen: boolean;
@@ -22,14 +23,30 @@ const days = [
 ];
 
 export function AddActivityModal({ isOpen, onClose }: AddActivityModalProps) {
+  const { createActivity } = useWeeklySchedule();
   const [title, setTitle] = useState("");
   const [dayOfWeek, setDayOfWeek] = useState("1");
   const [startTime, setStartTime] = useState("");
   const [endTime, setEndTime] = useState("");
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    // TODO: Implement weekly schedule CRUD
+    if (!title.trim()) return;
+    setIsSubmitting(true);
+
+    await createActivity({
+      title: title.trim(),
+      day_of_week: parseInt(dayOfWeek),
+      start_time: startTime || undefined,
+      end_time: endTime || undefined,
+    });
+
+    setIsSubmitting(false);
+    setTitle("");
+    setDayOfWeek("1");
+    setStartTime("");
+    setEndTime("");
     onClose();
   };
 
@@ -74,7 +91,9 @@ export function AddActivityModal({ isOpen, onClose }: AddActivityModalProps) {
           <Button variant="secondary" type="button" onClick={onClose}>
             Cancelar
           </Button>
-          <Button type="submit">Agregar</Button>
+          <Button type="submit" disabled={isSubmitting}>
+            {isSubmitting ? "Guardando..." : "Agregar"}
+          </Button>
         </div>
       </form>
     </Modal>
