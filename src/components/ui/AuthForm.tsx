@@ -2,9 +2,31 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import { motion, AnimatePresence } from "framer-motion";
 import { createClient } from "@/lib/supabase/client";
 import { Button } from "./Button";
 import { Input } from "./Input";
+
+const formVariants = {
+  hidden: { opacity: 0, y: 10 },
+  visible: {
+    opacity: 1,
+    y: 0,
+    transition: {
+      duration: 0.4,
+      staggerChildren: 0.1,
+    },
+  },
+};
+
+const itemVariants = {
+  hidden: { opacity: 0, y: 8 },
+  visible: {
+    opacity: 1,
+    y: 0,
+    transition: { duration: 0.3 },
+  },
+};
 
 export function AuthForm() {
   const router = useRouter();
@@ -26,18 +48,14 @@ export function AuthForm() {
       if (isLogin) {
         const { error } = await supabase.auth.signInWithPassword({ email, password });
         if (error) throw error;
-        // Redirect after successful login
         router.push("/dashboard");
       } else {
         const { data, error } = await supabase.auth.signUp({ email, password });
         if (error) throw error;
 
-        // Supabase project requires email confirmation (mailer_autoconfirm: false)
-        // If session is null, the user needs to confirm their email
         if (!data.session) {
           setIsSignedUp(true);
         } else {
-          // Auto-confirmed — redirect straight to dashboard
           router.push("/dashboard");
         }
       }
@@ -48,69 +66,129 @@ export function AuthForm() {
     }
   };
 
+  const toggleMode = () => {
+    setIsLogin(!isLogin);
+    setError(null);
+    setIsSignedUp(false);
+  };
+
   return (
-    <form onSubmit={handleSubmit} className="space-y-4 bg-white dark:bg-surface-dark rounded-xl p-6 shadow-sm border border-border">
-      <h2 className="text-xl font-semibold text-center text-foreground">
+    <motion.div
+      variants={formVariants}
+      initial="hidden"
+      animate="visible"
+      className="bg-white dark:bg-surface-dark rounded-2xl p-8 shadow-lg border border-border backdrop-blur-sm"
+    >
+      <motion.h2
+        variants={itemVariants}
+        className="text-2xl font-bold text-center text-foreground mb-6"
+      >
         {isLogin ? "Iniciar Sesión" : "Crear Cuenta"}
-      </h2>
+      </motion.h2>
 
-      {error && (
-        <div className="p-3 rounded-lg bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-300 text-sm">
-          {error}
-        </div>
-      )}
-
-      {isSignedUp ? (
-        <div className="p-4 rounded-lg bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300 text-sm space-y-2">
-          <p className="font-medium">¡Cuenta creada exitosamente!</p>
-          <p>Te enviamos un enlace de confirmación a <strong>{email}</strong>.</p>
-          <p>Revisá tu bandeja de entrada y hacé clic en el enlace para activar tu cuenta. Luego podés iniciar sesión.</p>
-          <button
-            type="button"
-            onClick={() => { setIsSignedUp(false); setIsLogin(true); }}
-            className="text-primary-600 hover:text-primary-700 font-medium underline"
+      <AnimatePresence mode="wait">
+        {error && (
+          <motion.div
+            key="error"
+            initial={{ opacity: 0, height: 0, marginBottom: 0 }}
+            animate={{ opacity: 1, height: "auto", marginBottom: 16 }}
+            exit={{ opacity: 0, height: 0, marginBottom: 0 }}
+            className="overflow-hidden"
           >
-            Volver a inicio de sesión
-          </button>
-        </div>
-      ) : (
-        <>
-          <Input
-            id="email"
-            label="Email"
-            type="email"
-            placeholder="tu@email.com"
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
-            required
-          />
+            <div className="p-4 rounded-xl bg-red-50 dark:bg-red-900/20 text-red-600 dark:text-red-400 text-sm border border-red-100 dark:border-red-900/30">
+              <p className="font-medium">⚠️ {error}</p>
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
 
-          <Input
-            id="password"
-            label="Contraseña"
-            type="password"
-            placeholder="••••••••"
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-            required
-          />
-
-          <Button type="submit" className="w-full" isLoading={isLoading}>
-            {isLogin ? "Iniciar Sesión" : "Crear Cuenta"}
-          </Button>
-
-          <p className="text-center text-sm text-muted-foreground">
-            {isLogin ? "¿No tienes cuenta?" : "¿Ya tienes cuenta?"}{" "}
+      <AnimatePresence mode="wait">
+        {isSignedUp ? (
+          <motion.div
+            key="signedup"
+            initial={{ opacity: 0, scale: 0.95 }}
+            animate={{ opacity: 1, scale: 1 }}
+            exit={{ opacity: 0, scale: 0.95 }}
+            transition={{ duration: 0.3 }}
+            className="p-6 rounded-xl bg-gradient-to-br from-blue-50 to-indigo-50 dark:from-blue-900/20 dark:to-indigo-900/20 text-blue-700 dark:text-blue-300 text-sm space-y-3 border border-blue-100 dark:border-blue-900/30"
+          >
+            <p className="font-bold text-lg flex items-center gap-2">
+              <span>🎉</span> ¡Cuenta creada exitosamente!
+            </p>
+            <p>
+              Te enviamos un enlace de confirmación a{" "}
+              <strong className="text-blue-800 dark:text-blue-200">{email}</strong>.
+            </p>
+            <p className="text-blue-600 dark:text-blue-400">
+              Revisá tu bandeja de entrada (y la carpeta de spam) y hacé clic en el enlace para activar tu cuenta.
+            </p>
             <button
               type="button"
-              onClick={() => setIsLogin(!isLogin)}
-              className="text-primary-600 hover:text-primary-700 font-medium"
+              onClick={toggleMode}
+              className="text-primary-600 dark:text-primary-400 hover:text-primary-700 dark:hover:text-primary-300 font-medium underline mt-2 block"
             >
-              {isLogin ? "Regístrate" : "Inicia sesión"}
+              ← Volver a inicio de sesión
             </button>
-          </p>
-        </>
-      )}
-    </form>
+          </motion.div>
+        ) : (
+          <motion.form
+            key="form"
+            onSubmit={handleSubmit}
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="space-y-5"
+          >
+            <motion.div variants={itemVariants}>
+              <Input
+                id="email"
+                label="Email"
+                type="email"
+                placeholder="tu@email.com"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                required
+              />
+            </motion.div>
+
+            <motion.div variants={itemVariants}>
+              <Input
+                id="password"
+                label="Contraseña"
+                type="password"
+                placeholder="••••••••"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                required
+              />
+            </motion.div>
+
+            <motion.div variants={itemVariants}>
+              <Button
+                type="submit"
+                className="w-full h-12 text-base font-semibold shadow-md hover:shadow-lg transition-shadow"
+                isLoading={isLoading}
+              >
+                {isLogin ? "Iniciar Sesión" : "Crear Cuenta"}
+              </Button>
+            </motion.div>
+
+            <motion.p
+              variants={itemVariants}
+              className="text-center text-sm text-muted-foreground pt-2"
+            >
+              {isLogin ? "¿No tienes cuenta?" : "¿Ya tienes cuenta?"}{" "}
+              <button
+                type="button"
+                onClick={toggleMode}
+                className="text-primary-600 dark:text-primary-400 hover:text-primary-700 dark:hover:text-primary-300 font-semibold transition-colors"
+              >
+                {isLogin ? "Regístrate →" : "← Inicia sesión"}
+              </button>
+            </motion.p>
+          </motion.form>
+        )}
+      </AnimatePresence>
+    </motion.div>
   );
 }
