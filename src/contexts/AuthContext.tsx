@@ -26,6 +26,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       if (!mounted) return;
       setUser(session?.user ?? null);
       setIsLoading(false);
+    }).catch(() => {
+      if (!mounted) return;
+      setIsLoading(false);
     });
 
     const {
