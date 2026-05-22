@@ -6,6 +6,11 @@ import { useAuth } from "./useAuth";
 import { useAvatarState } from "./useAvatarState";
 import type { Exam, ExamFormData } from "@/types/exam";
 
+function toDateString(raw: string | null | undefined): string {
+  if (!raw) return "";
+  return raw.split("T")[0];
+}
+
 export function useExams() {
   const [exams, setExams] = useState<Exam[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -21,7 +26,13 @@ export function useExams() {
       .select("*")
       .eq("user_id", user.id)
       .order("exam_date", { ascending: true });
-    if (data) setExams(data as Exam[]);
+    if (data) {
+      const examsWithFixedDates = data.map((e: any) => ({
+        ...e,
+        exam_date: toDateString(e.exam_date),
+      }));
+      setExams(examsWithFixedDates as Exam[]);
+    }
     setIsLoading(false);
   }, [user]);
 
@@ -34,7 +45,7 @@ export function useExams() {
       .select()
       .single();
     if (!error && data) {
-      setExams((prev) => [...prev, data as Exam]);
+      setExams((prev) => [...prev, { ...(data as Exam), exam_date: toDateString(data.exam_date) }]);
       triggerEvent("exam_added");
     }
     return { data, error };
@@ -49,7 +60,9 @@ export function useExams() {
       .select()
       .single();
     if (!error && data) {
-      setExams((prev) => prev.map((e) => (e.id === id ? (data as Exam) : e)));
+      setExams((prev) =>
+        prev.map((e) => (e.id === id ? { ...(data as Exam), exam_date: toDateString(data.exam_date) } : e))
+      );
     }
     return { data, error };
   }, [user]);

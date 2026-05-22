@@ -24,7 +24,7 @@ const examTypes = [
 export function ExamModal({ isOpen, onClose, exam }: ExamModalProps) {
   const { createExam, updateExam } = useExams();
   const [subject, setSubject] = useState(exam?.subject || "");
-  const [examDate, setExamDate] = useState(exam?.exam_date || "");
+  const [examDate, setExamDate] = useState(exam?.exam_date?.split("T")[0] || "");
   const [examType, setExamType] = useState(exam?.exam_type || "parcial");
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);

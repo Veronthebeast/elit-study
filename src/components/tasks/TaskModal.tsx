@@ -24,7 +24,7 @@ export function TaskModal({ isOpen, onClose, task }: TaskModalProps) {
   const { createTask, updateTask } = useTasks();
   const [title, setTitle] = useState(task?.title || "");
   const [subject, setSubject] = useState(task?.subject || "");
-  const [dueDate, setDueDate] = useState(task?.due_date || "");
+  const [dueDate, setDueDate] = useState(task?.due_date?.split("T")[0] || "");
   const [priority, setPriority] = useState(task?.priority || "media");
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);

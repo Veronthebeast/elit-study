@@ -6,6 +6,11 @@ import { useAuth } from "./useAuth";
 import { useAvatarState } from "./useAvatarState";
 import type { Task, TaskFormData } from "@/types/task";
 
+function toDateString(raw: string | null | undefined): string {
+  if (!raw) return "";
+  return raw.split("T")[0];
+}
+
 export function useTasks() {
   const [tasks, setTasks] = useState<Task[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -21,7 +26,13 @@ export function useTasks() {
       .select("*")
       .eq("user_id", user.id)
       .order("due_date", { ascending: true });
-    if (data) setTasks(data as Task[]);
+    if (data) {
+      const tasksWithFixedDates = data.map((t: any) => ({
+        ...t,
+        due_date: toDateString(t.due_date),
+      }));
+      setTasks(tasksWithFixedDates as Task[]);
+    }
     setIsLoading(false);
   }, [user]);
 
@@ -34,7 +45,7 @@ export function useTasks() {
       .select()
       .single();
     if (!error && data) {
-      setTasks((prev) => [...prev, data as Task]);
+      setTasks((prev) => [...prev, { ...(data as Task), due_date: toDateString(data.due_date) }]);
     }
     return { data, error };
   }, [user, authLoading]);
@@ -48,7 +59,9 @@ export function useTasks() {
       .select()
       .single();
     if (!error && data) {
-      setTasks((prev) => prev.map((t) => (t.id === id ? (data as Task) : t)));
+      setTasks((prev) =>
+        prev.map((t) => (t.id === id ? { ...(data as Task), due_date: toDateString(data.due_date) } : t))
+      );
     }
     return { data, error };
   }, [user]);
@@ -84,7 +97,7 @@ export function useTasks() {
       .select()
       .single();
     if (!error && data) {
-      setTasks((prev) => prev.map((t) => (t.id === id ? (data as Task) : t)));
+      setTasks((prev) => prev.map((t) => (t.id === id ? { ...(data as Task), due_date: toDateString(data.due_date) } : t)));
       if (nextStatus === "finalizada") {
         triggerEvent("task_completed");
       }

@@ -2,7 +2,7 @@
 
 import { Card } from "@/components/ui/Card";
 import { Badge } from "@/components/ui/Badge";
-import { format } from "date-fns";
+import { format, parse } from "date-fns";
 import { es } from "date-fns/locale";
 import { Calendar, Clock } from "lucide-react";
 import type { Exam } from "@/types/exam";
@@ -36,7 +36,7 @@ export function ExamCard({ exam, onClick }: ExamCardProps) {
       <div className="flex items-center gap-4 mt-3 text-sm text-muted-foreground">
         <span className="flex items-center gap-1">
           <Calendar className="w-4 h-4" />
-          {format(new Date(exam.exam_date), "d 'de' MMMM", { locale: es })}
+          {format(parse(exam.exam_date, "yyyy-MM-dd", new Date()), "d 'de' MMMM", { locale: es })}
         </span>
         {exam.exam_time && (
           <span className="flex items-center gap-1">

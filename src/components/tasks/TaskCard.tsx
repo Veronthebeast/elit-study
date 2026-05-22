@@ -3,7 +3,7 @@
 import { Card } from "@/components/ui/Card";
 import { Badge } from "@/components/ui/Badge";
 import { Checkbox } from "@/components/ui/Checkbox";
-import { format } from "date-fns";
+import { format, parse } from "date-fns";
 import { es } from "date-fns/locale";
 import { Calendar, Flag } from "lucide-react";
 import { cn } from "@/lib/utils";
@@ -58,7 +58,7 @@ export function TaskCard({ task, onClick }: TaskCardProps) {
           {task.due_date && (
             <div className="flex items-center gap-1 mt-2 text-xs text-muted-foreground">
               <Calendar className="w-3 h-3" />
-              {format(new Date(task.due_date), "d 'de' MMMM", { locale: es })}
+              {format(parse(task.due_date, "yyyy-MM-dd", new Date()), "d 'de' MMMM", { locale: es })}
             </div>
           )}
         </div>
