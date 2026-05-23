@@ -1,5 +1,6 @@
 "use client";
 
+import { memo } from "react";
 import { usePathname } from "next/navigation";
 import { SidebarItem } from "./SidebarItem";
 import {
@@ -22,7 +23,7 @@ const sidebarItems = [
   { href: "/settings", icon: Settings, label: "Ajustes" },
 ];
 
-export function Sidebar() {
+export const Sidebar = memo(function Sidebar() {
   const pathname = usePathname();
 
   return (
@@ -55,4 +56,4 @@ export function Sidebar() {
       </div>
     </aside>
   );
-}
+});

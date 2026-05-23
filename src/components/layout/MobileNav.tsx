@@ -1,5 +1,6 @@
 "use client";
 
+import { memo } from "react";
 import { usePathname } from "next/navigation";
 import Link from "next/link";
 import {
@@ -19,7 +20,7 @@ const mobileItems = [
   { href: "/daily", icon: Clock, label: "Hoy" },
 ];
 
-export function MobileNav() {
+export const MobileNav = memo(function MobileNav() {
   const pathname = usePathname();
 
   return (
@@ -46,4 +47,4 @@ export function MobileNav() {
       </div>
     </nav>
   );
-}
+});

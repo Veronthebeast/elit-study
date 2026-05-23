@@ -1,18 +1,21 @@
 "use client";
 
+import { memo, useMemo } from "react";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/Card";
 import { BookOpen } from "lucide-react";
 import { useExams } from "@/hooks/useExams";
 import { format, parseISO } from "date-fns";
 import { es } from "date-fns/locale";
 
-export function NextExamCard() {
+export const NextExamCard = memo(function NextExamCard() {
   const { exams, isLoading } = useExams();
 
-  const todayStr = format(new Date(), "yyyy-MM-dd");
-  const upcoming = exams
-    .filter((e) => e.exam_date >= todayStr)
-    .sort((a, b) => a.exam_date.localeCompare(b.exam_date));
+  const upcoming = useMemo(() => {
+    const todayStr = format(new Date(), "yyyy-MM-dd");
+    return exams
+      .filter((e) => e.exam_date >= todayStr)
+      .sort((a, b) => a.exam_date.localeCompare(b.exam_date));
+  }, [exams]);
   const nextExam = upcoming[0];
 
   return (
@@ -46,4 +49,4 @@ export function NextExamCard() {
       </CardContent>
     </Card>
   );
-}
+});

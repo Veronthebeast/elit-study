@@ -1,6 +1,6 @@
 "use client";
 
-import { createContext, useEffect, useState, useRef, type ReactNode } from "react";
+import { createContext, useEffect, useState, useRef, useMemo, useCallback, type ReactNode } from "react";
 import type { User, SupabaseClient } from "@supabase/supabase-js";
 import { createClient } from "@/lib/supabase/client";
 
@@ -45,14 +45,19 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     };
   }, []);
 
-  const signOut = async () => {
+  const signOut = useCallback(async () => {
     const supabase = supabaseRef.current;
     await supabase.auth.signOut();
     setUser(null);
-  };
+  }, []);
+
+  const value = useMemo(
+    () => ({ user, supabase: supabaseRef.current, isLoading, signOut }),
+    [user, isLoading, signOut]
+  );
 
   return (
-    <AuthContext.Provider value={{ user, supabase: supabaseRef.current, isLoading, signOut }}>
+    <AuthContext.Provider value={value}>
       {children}
     </AuthContext.Provider>
   );

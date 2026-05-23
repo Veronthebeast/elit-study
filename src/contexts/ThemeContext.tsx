@@ -1,6 +1,6 @@
 "use client";
 
-import { createContext, useEffect, useState, type ReactNode } from "react";
+import { createContext, useEffect, useState, useMemo, type ReactNode } from "react";
 
 type Theme = "light" | "dark" | "system";
 
@@ -52,8 +52,13 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
     localStorage.setItem("elit-study-theme", newTheme);
   };
 
+  const value = useMemo(
+    () => ({ theme, setTheme, resolvedTheme }),
+    [theme, resolvedTheme]
+  );
+
   return (
-    <ThemeContext.Provider value={{ theme, setTheme, resolvedTheme }}>
+    <ThemeContext.Provider value={value}>
       {children}
     </ThemeContext.Provider>
   );

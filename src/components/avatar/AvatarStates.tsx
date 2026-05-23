@@ -11,16 +11,20 @@ const stateFilters: Record<AvatarState, string> = {
   celebrating: "brightness(1.2) saturate(1.3) hue-rotate(10deg)",
 };
 
-export function AvatarCharacter({ state }: AvatarCharacterProps) {
+import { memo } from "react";
+
+export const AvatarCharacter = memo(function AvatarCharacter({ state }: AvatarCharacterProps) {
   return (
     <img
       src="/elitstudy.svg"
       alt={`Elit Study mascota - ${state}`}
-      className="w-full h-full object-contain pixel-image"
+      className="w-full h-full object-contain"
       style={{
         filter: stateFilters[state],
         imageRendering: "pixelated",
       }}
+      loading="lazy"
+      decoding="async"
     />
   );
-}
+});

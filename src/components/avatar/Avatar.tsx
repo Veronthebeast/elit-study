@@ -1,11 +1,12 @@
 "use client";
 
+import { memo } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useAvatarState } from "@/hooks/useAvatarState";
 import { AvatarCharacter } from "./AvatarStates";
 import { AvatarMessage } from "./AvatarMessage";
 
-export function Avatar() {
+export const Avatar = memo(function Avatar() {
   const { state, message } = useAvatarState();
 
   const variants = {
@@ -50,4 +51,4 @@ export function Avatar() {
       </AnimatePresence>
     </div>
   );
-}
+});

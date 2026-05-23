@@ -1,6 +1,6 @@
 "use client";
 
-import { createContext, useState, useCallback, useRef, type ReactNode } from "react";
+import { createContext, useState, useCallback, useRef, useMemo, type ReactNode } from "react";
 import type { AvatarState, AvatarEvent } from "@/types/avatar";
 import { EVENT_STATE_MAP } from "@/components/avatar/avatarLogic";
 
@@ -40,8 +40,13 @@ export function AvatarProvider({ children }: { children: ReactNode }) {
     [setState]
   );
 
+  const value = useMemo(
+    () => ({ state, message, setState, triggerEvent }),
+    [state, message, setState, triggerEvent]
+  );
+
   return (
-    <AvatarContext.Provider value={{ state, message, setState, triggerEvent }}>
+    <AvatarContext.Provider value={value}>
       {children}
     </AvatarContext.Provider>
   );

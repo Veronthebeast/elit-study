@@ -1,10 +1,11 @@
 "use client";
 
+import { memo } from "react";
 import { Bell, Moon, Sun } from "lucide-react";
 import { useTheme } from "@/hooks/useTheme";
 import { useAuth } from "@/hooks/useAuth";
 
-export function Navbar() {
+export const Navbar = memo(function Navbar() {
   const { theme, setTheme } = useTheme();
   const { user } = useAuth();
 
@@ -52,4 +53,4 @@ export function Navbar() {
       </div>
     </header>
   );
-}
+});

@@ -1,5 +1,6 @@
 "use client";
 
+import { memo, useMemo } from "react";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/Card";
 import { CheckSquare } from "lucide-react";
 import { useTasks } from "@/hooks/useTasks";
@@ -13,16 +14,13 @@ const priorityColors: Record<string, string> = {
   baja: "text-green-600 bg-green-50 dark:text-green-400 dark:bg-green-900/20",
 };
 
-const statusLabels: Record<string, string> = {
-  pendiente: "Pendiente",
-  en_progreso: "En curso",
-  finalizada: "Completada",
-};
-
-export function PendingTasksCard() {
+export const PendingTasksCard = memo(function PendingTasksCard() {
   const { tasks, isLoading } = useTasks();
 
-  const pending = tasks.filter((t) => t.status !== "finalizada");
+  const pending = useMemo(
+    () => tasks.filter((t) => t.status !== "finalizada"),
+    [tasks]
+  );
 
   return (
     <Card hoverable>
@@ -67,4 +65,4 @@ export function PendingTasksCard() {
       </CardContent>
     </Card>
   );
-}
+});

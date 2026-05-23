@@ -1,16 +1,18 @@
 "use client";
 
+import { memo, useMemo } from "react";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/Card";
 import { Clock } from "lucide-react";
 import { useWeeklySchedule } from "@/hooks/useWeeklySchedule";
 import { cn } from "@/lib/utils";
 
-const dayLabels = ["domingo", "lunes", "martes", "miércoles", "jueves", "viernes", "sábado"];
-
-export function TodayActivitiesCard() {
+export const TodayActivitiesCard = memo(function TodayActivitiesCard() {
   const { activities, isLoading } = useWeeklySchedule();
-  const todayIndex = new Date().getDay();
-  const todayActivities = activities.filter((a) => a.day_of_week === todayIndex);
+  const todayIndex = useMemo(() => new Date().getDay(), []);
+  const todayActivities = useMemo(
+    () => activities.filter((a) => a.day_of_week === todayIndex),
+    [activities, todayIndex]
+  );
 
   return (
     <Card hoverable>
@@ -61,4 +63,4 @@ export function TodayActivitiesCard() {
       </CardContent>
     </Card>
   );
-}
+});
